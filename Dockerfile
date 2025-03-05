@@ -1,11 +1,22 @@
 FROM debian:bullseye-slim
 
-# Install PostgreSQL client tools, Python, and other dependencies
+# Install dependencies and PostgreSQL repository
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    postgresql-client \
     ca-certificates \
+    curl \
+    gnupg \
     python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add PostgreSQL repository
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt/ bullseye-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+
+# Install PostgreSQL 16 client
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    postgresql-client-16 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user to run the script
