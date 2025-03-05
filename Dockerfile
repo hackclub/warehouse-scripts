@@ -14,6 +14,11 @@ RUN useradd -m -s /bin/bash worker
 # Copy the scripts
 COPY . /home/worker/
 
+# Create tmp directory with correct permissions
+RUN mkdir -p /home/worker/tmp && \
+    chown worker:worker /home/worker/tmp && \
+    chmod 755 /home/worker/tmp
+
 # Switch to non-root user
 USER worker
 WORKDIR /home/worker
