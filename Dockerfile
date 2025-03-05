@@ -12,8 +12,7 @@ RUN apt-get update && \
 RUN useradd -m -s /bin/bash worker
 
 # Copy the scripts
-COPY copyHackatimeDb.sh server.py /home/worker/
-RUN chmod +x /home/worker/copyHackatimeDb.sh
+COPY . /home/worker/
 
 # Switch to non-root user
 USER worker
