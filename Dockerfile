@@ -22,16 +22,5 @@ WORKDIR /home/worker
 # Expose the HTTP port
 EXPOSE 3000
 
-# Create a startup script
-COPY <<'EOF' /home/worker/start.sh
-#!/bin/bash
-# Start the HTTP server in the background
-python3 server.py &
-# Keep the container running
-wait
-EOF
-
-RUN chmod +x start.sh
-
-# Run the startup script
-ENTRYPOINT ["./start.sh"] 
+# Run the HTTP server
+CMD ["python3", "server.py"] 
