@@ -33,12 +33,13 @@ fi
 
 # Display help message
 show_help() {
-  echo "Usage: $0 [options] [source_db_url] [target_db_url] target_schema [incremental]"
+  echo "Usage: $0 [options] source_db_url source_db_schema dest_db_url dest_db_schema [incremental]"
   echo ""
   echo "Arguments:"
-  echo "  source_db_url     Optional. URL for source database. Defaults to HACKATIME_DB_URL from .env"
-  echo "  target_db_url     Optional. URL for target database. Defaults to WAREHOUSE_DB_URL from .env"
-  echo "  target_schema     Required. Schema name to create in target database"
+  echo "  source_db_url     Required. URL for source database"
+  echo "  source_db_schema  Required. Schema name in source database"
+  echo "  dest_db_url       Required. URL for destination database"
+  echo "  dest_db_schema    Required. Schema name to create in destination database"
   echo "  incremental       Optional. true or false, defaults to true"
   echo ""
   echo "Options:"
@@ -46,7 +47,7 @@ show_help() {
   echo "  --batch-size N    Number of rows to process in a batch (default: 1000)"
   echo "  --debug           Enable debug logging"
   echo ""
-  echo "Example: $0 --batch-size=500 \"\" \"\" db1"
+  echo "Example: $0 --batch-size=500 \"postgres://user:pass@host:5432/db1\" \"public\" \"postgres://user:pass@host:5432/db2\" \"my_schema\""
   exit 1
 }
 
@@ -84,13 +85,14 @@ set -- "${POSITIONAL_ARGS[@]}"
 
 # Parse command line arguments
 SOURCE_DB=${1:-$HACKATIME_DB_URL}
-TARGET_DB=${2:-$WAREHOUSE_DB_URL}
-TARGET_SCHEMA=$3
-INCREMENTAL=${4:-true}
+SOURCE_SCHEMA=${2:-public}
+TARGET_DB=${3:-$WAREHOUSE_DB_URL}
+TARGET_SCHEMA=$4
+INCREMENTAL=${5:-true}
 
 # Validate inputs
-if [ -z "$TARGET_SCHEMA" ]; then
-  echo "ERROR: Target schema name must be provided"
+if [ -z "$SOURCE_DB" ] || [ -z "$SOURCE_SCHEMA" ] || [ -z "$TARGET_DB" ] || [ -z "$TARGET_SCHEMA" ]; then
+  echo "ERROR: All database URLs and schema names must be provided"
   show_help
 fi
 
@@ -105,9 +107,10 @@ fi
 set +e
 
 # Run the migration
-echo "Starting migration to schema '$TARGET_SCHEMA'..."
+echo "Starting migration from schema '$SOURCE_SCHEMA' to '$TARGET_SCHEMA'..."
 ./pg_migrate.py \
   --source-db-url="$SOURCE_DB" \
+  --source-schema="$SOURCE_SCHEMA" \
   --target-db-url="$TARGET_DB" \
   --target-schema="$TARGET_SCHEMA" \
   $INCREMENTAL_ARG \

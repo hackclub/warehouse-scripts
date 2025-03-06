@@ -33,11 +33,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Migrate data from one Postgres schema to another with schema remapping.')
     parser.add_argument('--source-db-url', help='Source database URL')
     parser.add_argument('--target-db-url', help='Target database URL')
-    parser.add_argument('--source-schema', default='public', help='Source schema name (default: public)')
+    parser.add_argument('--source-schema', required=True, help='Source schema name')
     parser.add_argument('--target-schema', required=True, help='Target schema name')
     parser.add_argument('--incremental', action='store_true', help='Enable incremental updates')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
-    parser.add_argument('--batch-size', type=int, default=2000, help='Number of rows to process in a batch (default: 1000)')
+    parser.add_argument('--batch-size', type=int, default=1000, help='Number of rows to process in a batch (default: 1000)')
     
     args = parser.parse_args()
     
@@ -330,10 +330,16 @@ def copy_data(source_conn, target_conn, source_schema, target_schema, table, col
         # The server will only send batch_size rows at a time
         with source_conn.cursor(name='server_side_cursor') as source_cursor:
             # Construct and log the select query
+            # Add ORDER BY clause for the timestamp column when doing incremental updates
+            order_clause = ""
+            if modified_column:
+                order_clause = f"ORDER BY \"{modified_column}\" ASC"
+
             select_sql = f"""
                 SELECT {columns_str}
                 FROM {source_schema}."{table}"
                 {where_clause}
+                {order_clause}
             """
             logger.info(f"Executing query: {select_sql} with params {params}")
             source_cursor.execute(select_sql, params)
