@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument('--target-schema', required=True, help='Target schema name')
     parser.add_argument('--incremental', action='store_true', help='Enable incremental updates')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
-    parser.add_argument('--batch-size', type=int, default=1000, help='Number of rows to process in a batch (default: 1000)')
+    parser.add_argument('--batch-size', type=int, default=2000, help='Number of rows to process in a batch (default: 1000)')
     
     args = parser.parse_args()
     
